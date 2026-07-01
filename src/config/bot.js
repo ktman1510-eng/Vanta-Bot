@@ -301,7 +301,7 @@ export const botConfig = {
     autoVerify: {
       // How automatic verification decides who is auto-approved:
       // - "none"        = everyone is auto-verified immediately
-      // - "14" = account must be older than set days
+      // - "2" = account must be older than set days
       // - "server_size" = auto-verify everyone only in smaller servers
       defaultCriteria: "none",
 
