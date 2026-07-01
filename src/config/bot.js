@@ -301,7 +301,7 @@ export const botConfig = {
     autoVerify: {
       // How automatic verification decides who is auto-approved:
       // - "none"        = everyone is auto-verified immediately
-      // - "account_age" = account must be older than set days
+      // - "14" = account must be older than set days
       // - "server_size" = auto-verify everyone only in smaller servers
       defaultCriteria: "none",
 
@@ -310,7 +310,7 @@ export const botConfig = {
 
       // Member count threshold used when `defaultCriteria` is `server_size`.
       // Example: 1000 means auto-verify if server has fewer than 1000 members.
-      serverSizeThreshold: 1000,
+      serverSizeThreshold: 10,
 
       // Allowed safety limits for account-age requirements.
       // 1 = minimum day, 365 = maximum days.
