@@ -568,7 +568,7 @@ client.on("interactionCreate", async interaction => {
         const member = interaction.member;
 
         // Check if the person signing has the high power role
-        if (!member.roles.cache.has(HIGH_POWER_ROLE_ID)) {
+        if (!member.roles.cache.has(Signer)) {
             return interaction.reply({
                 content: "You do not have permission to sign players.",
                 ephemeral: true
