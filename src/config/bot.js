@@ -540,3 +540,64 @@ export function getRandomColor() {
 }
 
 export default botConfig;
+const {
+    Client,
+    GatewayIntentBits,
+    SlashCommandBuilder,
+    PermissionFlagsBits
+} = require('discord.js');
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.DirectMessages
+    ]
+});
+
+const HIGH_POWER_ROLE_ID = "ROLE_ID_HERE"; // Replace with your management role ID
+
+client.once("ready", () => {
+    console.log(`${client.user.tag} is online!`);
+});
+
+client.on("interactionCreate", async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === "sign") {
+        const member = interaction.member;
+
+        // Check if the person signing has the high power role
+        if (!member.roles.cache.has(HIGH_POWER_ROLE_ID)) {
+            return interaction.reply({
+                content: "You do not have permission to sign players.",
+                ephemeral: true
+            });
+        }
+
+        const player = interaction.options.getUser("player");
+
+        try {
+            await player.send(
+                `🎉 Congratulations! You have officially been signed to the team by ${interaction.user.tag}.\n\nWelcome to the organization!`
+            );
+
+            await interaction.reply(
+                `✅ ${player.tag} has been signed and notified via DM.`
+            );
+        } catch (err) {
+            await interaction.reply(
+                `❌ I couldn't send a DM to ${player.tag}. They may have DMs disabled.`
+            );
+        }
+    }
+});
+const command = new SlashCommandBuilder()
+    .setName("sign")
+    .setDescription("Sign a player to the team")
+    .addUserOption(option =>
+        option
+            .setName("player")
+            .setDescription("The player to sign")
+            .setRequired(true)
+    );
