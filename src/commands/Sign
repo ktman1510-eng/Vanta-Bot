@@ -1,1 +1,106 @@
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const Signing = require("../../models/Signing");
+const config = require("../../config/config");
 
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName("release")
+        .setDescription("Release a player from the org")
+        .addUserOption(o =>
+            o.setName("player").setDescription("Player").setRequired(true)
+        ),
+
+    async execute(interaction) {
+        if (!interaction.member.roles.cache.some(r => r.name === config.signersRole)) {
+            return interaction.reply({ content: "No permission.", ephemeral: true });
+        }
+
+        const user = interaction.options.getUser("player");
+        const member = await interaction.guild.members.fetch(user.id);
+
+        const record = await Signing.findOne({
+            userId: user.id,
+            status: "active"
+        });
+
+        if (!record) {
+            return interaction.reply({ content: "Player not signed.", ephemeral: true });
+        }
+
+        record.status = "released";
+        record.releasedAt = new Date();
+        await record.save();
+
+        // remove all roster roles
+        const roles = interaction.guild.roles.cache.filter(r =>
+            config.rosters.includes(r.name)
+        );
+
+        await member.roles.remove(roles);
+
+        const embed = new EmbedBuilder()
+            .setTitle("Player Released")
+            .setDescription(`${user.tag} has been released from **Vanta**`)
+            .setColor("Red")
+            .setTimestamp();
+
+        interaction.reply({ embeds: [embed] });
+    }
+};
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const Signing = require("../../models/Signing");
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName("roster")
+        .setDescription("View all active players"),
+
+    async execute(interaction) {
+        const players = await Signing.find({ status: "active" });
+
+        if (!players.length) {
+            return interaction.reply("No active players.");
+        }
+
+        const embed = new EmbedBuilder()
+            .setTitle("Vanta Roster")
+            .setColor("Blue")
+            .setTimestamp();
+
+        for (const p of players) {
+            embed.addFields({
+                name: p.username,
+                value: `Roster: **${p.roster}** | Signed by: **${p.signedBy}**`,
+                inline: false
+            });
+        }
+
+        interaction.reply({ embeds: [embed] });
+    }
+};
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const Signing = require("../../models/Signing");
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName("signhistory")
+        .setDescription("View full signing history"),
+
+    async execute(interaction) {
+        const history = await Signing.find().sort({ date: -1 }).limit(20);
+
+        const embed = new EmbedBuilder()
+            .setTitle("Signing History")
+            .setColor("Purple");
+
+        for (const h of history) {
+            embed.addFields({
+                name: h.username,
+                value: `${h.status.toUpperCase()} → ${h.roster}\nSigned by: ${h.signedBy}`,
+                inline: false
+            });
+        }
+
+        interaction.reply({ embeds: [embed] });
+    }
+};
